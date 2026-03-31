@@ -79,7 +79,8 @@ npm run simulator
 - `npm run build` — сборка TypeScript в `dist`;
 - `npm run start` — запуск собранного приложения;
 - `npm run simulator` — запуск генератора событий;
-- `npm run lint` — проверка типов.
+- `npm run lint` — проверка типов;
+- `npm run smoke` — smoke-проверка основных API endpoint'ов.
 
 ## Docker
 
@@ -88,6 +89,8 @@ npm run simulator
 ```bash
 docker compose up --build
 ```
+
+`docker-compose.yml` содержит healthcheck'и для `mongo`, `kafka` и `app`, а `app` стартует только после готовности зависимостей.
 
 ## Переменные окружения
 

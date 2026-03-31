@@ -8,7 +8,8 @@
     "build": "tsc -p tsconfig.json",
     "start": "node dist/src/index.js",
     "simulator": "tsx src/scripts/runSimulator.ts",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit",
+    "smoke": "tsx src/scripts/smokeCheck.ts"
   },
   "keywords": [
     "node",
