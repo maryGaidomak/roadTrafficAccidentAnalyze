@@ -1,0 +1,24 @@
+[
+  {
+    "region": "Moscow",
+    "date": "2025-11-01",
+    "accidentsCount": 21,
+    "injuriesCount": 19,
+    "fatalitiesCount": 2,
+    "source": "sample-open-data"
+  },
+  {
+    "region_name": "Moscow Oblast",
+    "day": "2025-11-01",
+    "accidents": 17,
+    "injured": 13,
+    "deaths": 1
+  },
+  {
+    "subject": "Saint Petersburg",
+    "event_date": "2025-11-02T00:00:00Z",
+    "totalAccidents": 12,
+    "totalInjuries": 8,
+    "fatalities": 0
+  }
+]
