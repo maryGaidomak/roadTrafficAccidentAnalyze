@@ -1,6 +1,12 @@
 # Backend: Инфраструктура Big Data для обработки данных по ДТП
 
-Простой backend-проект для курсовой на стеке **Node.js + TypeScript + Express + MongoDB + Kafka**.
+Учебный backend-проект на **Node.js + TypeScript + Express + MongoDB + Kafka**.
+
+## Что делает система
+
+- **simulator** генерирует поток дорожной телеметрии и инцидентов;
+- **processor** читает события из Kafka, валидирует их, сохраняет в MongoDB и обновляет агрегаты риска;
+- **app** отдаёт REST API для dashboard и аналитики.
 
 ## Требования
 
@@ -8,54 +14,26 @@
 - npm 10+
 - Docker + Docker Compose
 
-## Структура
-
-```text
-src/
-  api/
-  config/
-  domain/
-  infrastructure/
-  repositories/
-  scripts/
-  services/
-  simulator/
-  utils/
-```
-
-## Настройка окружения
+## Настройка
 
 ```bash
 cp .env.example .env
 npm install
 ```
 
-## Порядок локального запуска
+## NPM scripts
 
-1. Поднять MongoDB и Kafka:
-   ```bash
-   docker compose up -d mongo kafka
-   ```
-2. Запустить backend:
-   ```bash
-   npm run dev
-   ```
-3. (Опционально) Заполнить демо-данными:
-   ```bash
-   npm run seed:segments
-   npm run seed:historical
-   npm run seed:risk
-   ```
-4. Запустить simulator:
-   ```bash
-   npm run simulator
-   ```
-
-## Режимы simulator
-
-- `SIMULATOR_MODE=kafka` — публикует только в Kafka.
-- `SIMULATOR_MODE=kafka+mongo` — публикует в Kafka и пишет сырые события в MongoDB.
-- `SIMULATOR_MODE=console` — не публикует, пишет события в логи.
+- `npm run dev` — backend в watch-режиме
+- `npm run build` — сборка TypeScript
+- `npm run start` — запуск backend из `dist`
+- `npm run simulator` — запуск генератора событий
+- `npm run processor` — запуск Kafka consumer/processor
+- `npm run seed:segments` — сидирование дорожных сегментов
+- `npm run seed:historical` — сидирование исторической статистики ДТП
+- `npm run seed:risk` — сидирование начальных агрегатов риска
+- `npm run lint` — проверка TypeScript
+- `npm run smoke` — базовый smoke-check API
+- `npm run smoke:e2e` — e2e smoke-сценарий потока simulator -> Kafka -> processor -> API
 
 ## API endpoints
 
@@ -68,44 +46,66 @@ npm install
 - `GET /api/segments/:id`
 - `GET /api/regions`
 
-## Примеры curl
+## Полный сценарий запуска через Docker
+
+### 1) Поднять инфраструктуру и API
+
+```bash
+docker compose up --build -d mongo kafka app
+```
+
+### 2) Засидировать демо-данные
+
+```bash
+docker compose run --rm app npm run seed:segments
+docker compose run --rm app npm run seed:historical
+docker compose run --rm app npm run seed:risk
+```
+
+### 3) Запустить simulator
+
+```bash
+docker compose up -d simulator
+```
+
+### 4) Запустить processor
+
+```bash
+docker compose up -d processor
+```
+
+### 5) Проверить API
 
 ```bash
 curl "http://localhost:3000/health"
+curl "http://localhost:3000/api/telemetry/recent?limit=20"
 curl "http://localhost:3000/api/incidents/recent?limit=20"
-curl "http://localhost:3000/api/telemetry/recent?segmentId=SEG-101&limit=50"
 curl "http://localhost:3000/api/risk/top?limit=10"
-curl "http://localhost:3000/api/stats/summary"
-curl "http://localhost:3000/api/stats/historical?region=north&from=2026-03-20&to=2026-03-31"
-curl "http://localhost:3000/api/segments/SEG-101"
-curl "http://localhost:3000/api/regions"
 ```
 
-## NPM scripts
+## Smoke scenario (end-to-end)
 
-- `npm run dev` — backend в watch-режиме
-- `npm run build` — сборка TypeScript
-- `npm run start` — запуск из `dist`
-- `npm run simulator` — генерация телеметрии и инцидентов
-- `npm run seed:segments` — сидирование дорожных сегментов
-- `npm run seed:historical` — сидирование исторической статистики ДТП
-- `npm run seed:risk` — сидирование агрегатов риска
-- `npm run lint` — проверка TypeScript
-- `npm run smoke` — smoke-проверка основных endpoint-ов
-
-## Docker
-
-Полный запуск:
+Когда `app`, `simulator`, `processor` запущены:
 
 ```bash
-docker compose up --build
+npm run smoke:e2e
 ```
 
-## Примечания
+Скрипт проверяет:
+- API отвечает на `/health`;
+- новые telemetry появляются со временем;
+- endpoint incidents доступен и отдаёт данные/изменения;
+- `risk/top` возвращает агрегаты риска.
 
-- `node_modules/` исключены через `.gitignore` и `.dockerignore`.
-- Индексы MongoDB инициализируются автоматически при старте backend.
-- Формат ошибок API:
+## Режимы simulator
+
+- `SIMULATOR_MODE=kafka`
+- `SIMULATOR_MODE=kafka+mongo`
+- `SIMULATOR_MODE=console`
+
+Для docker-сценария по умолчанию в `docker-compose.yml` для сервиса simulator используется `SIMULATOR_MODE=kafka`, чтобы запись в Mongo делал именно processor.
+
+## Формат ошибок API
 
 ```json
 {

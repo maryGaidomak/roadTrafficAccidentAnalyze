@@ -5,11 +5,13 @@ import { logger } from '../../utils/logger';
 export const initializeMongoIndexes = async (db: Db): Promise<void> => {
   await Promise.all([
     db.collection(COLLECTIONS.telemetryEvents).createIndexes([
+      { key: { eventId: 1 }, name: 'telemetry_event_id_unique', unique: true },
       { key: { timestamp: -1 }, name: 'telemetry_timestamp_desc' },
       { key: { segmentId: 1, timestamp: -1 }, name: 'telemetry_segment_timestamp' },
       { key: { event_time: -1 }, name: 'telemetry_event_time_desc' }
     ]),
     db.collection(COLLECTIONS.incidentEvents).createIndexes([
+      { key: { incidentId: 1 }, name: 'incident_event_id_unique', unique: true },
       { key: { timestamp: -1 }, name: 'incident_timestamp_desc' },
       { key: { segmentId: 1, timestamp: -1 }, name: 'incident_segment_timestamp' },
       { key: { event_time: -1 }, name: 'incident_event_time_desc' }
