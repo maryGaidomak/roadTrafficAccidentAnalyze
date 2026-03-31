@@ -1,86 +1,97 @@
 # Backend: Инфраструктура Big Data для обработки данных по ДТП
 
-Backend-приложение на **Node.js + TypeScript + Express + MongoDB + Kafka** для:
-- приема/генерации/публикации дорожных событий;
-- хранения событий и агрегатов в MongoDB;
-- предоставления REST API для панели мониторинга ДТП.
+Простой backend-проект для курсовой на стеке **Node.js + TypeScript + Express + MongoDB + Kafka**.
 
-## Структура проекта
+## Требования
+
+- Node.js 20+
+- npm 10+
+- Docker + Docker Compose
+
+## Структура
 
 ```text
 src/
+  api/
   config/
   domain/
-  api/
-    controllers/
-    routes/
-  services/
-  repositories/
   infrastructure/
-    kafka/
-    mongo/
+  repositories/
+  scripts/
+  services/
   simulator/
   utils/
-  scripts/
 ```
 
-## Быстрый старт
+## Настройка окружения
 
-1. Скопируйте переменные окружения:
-   ```bash
-   cp .env.example .env
-   ```
-2. Установите зависимости:
-   ```bash
-   npm install
-   ```
-3. Запустите инфраструктуру (MongoDB + Kafka):
+```bash
+cp .env.example .env
+npm install
+```
+
+## Порядок локального запуска
+
+1. Поднять MongoDB и Kafka:
    ```bash
    docker compose up -d mongo kafka
    ```
-4. Запустите backend:
+2. Запустить backend:
    ```bash
    npm run dev
    ```
+3. (Опционально) Заполнить демо-данными:
+   ```bash
+   npm run seed:segments
+   npm run seed:historical
+   npm run seed:risk
+   ```
+4. Запустить simulator:
+   ```bash
+   npm run simulator
+   ```
 
-## API
+## Режимы simulator
+
+- `SIMULATOR_MODE=kafka` — публикует только в Kafka.
+- `SIMULATOR_MODE=kafka+mongo` — публикует в Kafka и пишет сырые события в MongoDB.
+- `SIMULATOR_MODE=console` — не публикует, пишет события в логи.
+
+## API endpoints
 
 - `GET /health`
-- `GET /api/incidents/recent?limit=20`
-- `GET /api/telemetry/recent?limit=20`
-- `GET /api/risk/top?limit=20`
+- `GET /api/incidents/recent?limit=50`
+- `GET /api/telemetry/recent?segmentId=SEG-101&limit=100`
+- `GET /api/risk/top?limit=10`
 - `GET /api/stats/summary`
-- `GET /api/regions`
+- `GET /api/stats/historical?region=north&from=2026-03-01&to=2026-03-31`
 - `GET /api/segments/:id`
-- `GET /api/stats/historical?limit=20`
+- `GET /api/regions`
 
-## Kafka topics
-
-- `road.telemetry`
-- `road.incidents`
-
-## Simulator
-
-Запуск симулятора:
+## Примеры curl
 
 ```bash
-npm run simulator
+curl "http://localhost:3000/health"
+curl "http://localhost:3000/api/incidents/recent?limit=20"
+curl "http://localhost:3000/api/telemetry/recent?segmentId=SEG-101&limit=50"
+curl "http://localhost:3000/api/risk/top?limit=10"
+curl "http://localhost:3000/api/stats/summary"
+curl "http://localhost:3000/api/stats/historical?region=north&from=2026-03-20&to=2026-03-31"
+curl "http://localhost:3000/api/segments/SEG-101"
+curl "http://localhost:3000/api/regions"
 ```
 
-Что делает:
-- каждые 2–5 секунд генерирует телеметрию;
-- с настраиваемой вероятностью создает инциденты;
-- сериализует события в JSON и публикует в Kafka;
-- при `SIMULATOR_WRITE_TO_MONGO=true` пишет сырые события в MongoDB.
+## NPM scripts
 
-## Полезные скрипты
-
-- `npm run dev` — запуск API в watch режиме;
-- `npm run build` — сборка TypeScript в `dist`;
-- `npm run start` — запуск собранного приложения;
-- `npm run simulator` — запуск генератора событий;
-- `npm run lint` — проверка типов;
-- `npm run smoke` — smoke-проверка основных API endpoint'ов.
+- `npm run dev` — backend в watch-режиме
+- `npm run build` — сборка TypeScript
+- `npm run start` — запуск из `dist`
+- `npm run simulator` — генерация телеметрии и инцидентов
+- `npm run seed:segments` — сидирование дорожных сегментов
+- `npm run seed:historical` — сидирование исторической статистики ДТП
+- `npm run seed:risk` — сидирование агрегатов риска
+- `npm run lint` — проверка TypeScript
+- `npm run smoke` — smoke-проверка основных endpoint-ов
 
 ## Docker
 
@@ -90,8 +101,17 @@ npm run simulator
 docker compose up --build
 ```
 
-`docker-compose.yml` содержит healthcheck'и для `mongo`, `kafka` и `app`, а `app` стартует только после готовности зависимостей.
+## Примечания
 
-## Переменные окружения
+- `node_modules/` исключены через `.gitignore` и `.dockerignore`.
+- Индексы MongoDB инициализируются автоматически при старте backend.
+- Формат ошибок API:
 
-Смотрите `.env.example`.
+```json
+{
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "Invalid query parameter: limit"
+  }
+}
+```

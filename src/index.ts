@@ -5,9 +5,14 @@ import { createRepositories } from './services/repositoryFactory';
 import { createApp } from './app';
 import { logger } from './utils/logger';
 import { kafkaProducer } from './infrastructure/kafka/producer';
+import { initializeMongoIndexes } from './infrastructure/mongo/indexInitializer';
 
 const bootstrap = async (): Promise<void> => {
+  logger.info({ nodeEnv: env.nodeEnv, port: env.port }, 'Starting backend application');
   const db = await connectMongo();
+  await initializeMongoIndexes(db);
+  await kafkaProducer.connect();
+  logger.info('Kafka connectivity check passed at startup');
   const repositories = createRepositories(db);
   const app = createApp(repositories);
 

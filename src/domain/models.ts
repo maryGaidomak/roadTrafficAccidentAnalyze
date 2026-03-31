@@ -28,6 +28,7 @@ export interface TelemetryEvent {
   flowRate: number;
   occupancy: number;
   weather: 'CLEAR' | 'RAIN' | 'SNOW' | 'FOG';
+  event_time?: Date;
   timestamp: Date;
 }
 
@@ -41,6 +42,7 @@ export interface IncidentEvent {
   description: string;
   affectedLanes: number;
   resolved: boolean;
+  event_time?: Date;
   timestamp: Date;
 }
 
@@ -51,6 +53,7 @@ export interface RiskAggregate {
   riskScore: number;
   incidentCountLast24h: number;
   avgSpeedLastHour: number;
+  windowEnd?: Date;
   updatedAt: Date;
 }
 
@@ -61,6 +64,7 @@ export interface HistoricalAccidentStat {
   accidentsCount: number;
   injuriesCount: number;
   fatalitiesCount: number;
+  event_time?: Date;
   updatedAt: Date;
 }
 

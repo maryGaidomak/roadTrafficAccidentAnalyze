@@ -2,7 +2,7 @@ import { env } from '../config/env';
 import { kafkaProducer } from '../infrastructure/kafka/producer';
 import { closeMongo, connectMongo } from '../infrastructure/mongo/client';
 import { SimulatorService } from '../simulator/simulatorService';
-import { createRepositories } from '../services/repositoryFactory';
+import { Repositories, createRepositories } from '../services/repositoryFactory';
 import { logger } from '../utils/logger';
 
 const defaultSegments = [
@@ -13,19 +13,22 @@ const defaultSegments = [
 ];
 
 const run = async (): Promise<void> => {
-  const db = await connectMongo();
-  const repositories = createRepositories(db);
+  let repositories: Repositories | null = null;
+  let seeds = defaultSegments;
 
-  const segments = await repositories.roadSegmentRepository.find({}, { limit: 100 });
-  const seeds =
-    segments.length > 0
-      ? segments.map((segment) => ({ segmentId: segment.segmentId, region: segment.region }))
-      : defaultSegments;
+  if (env.simulatorMode !== 'console') {
+    const db = await connectMongo();
+    repositories = createRepositories(db);
+    const segments = await repositories.roadSegmentRepository.find({}, { limit: 100 });
+    seeds = segments.length > 0 ? segments.map((segment) => ({ segmentId: segment.segmentId, region: segment.region })) : defaultSegments;
+  }
 
-  logger.info(
-    { topicTelemetry: env.kafkaTelemetryTopic, topicIncidents: env.kafkaIncidentsTopic, segments: seeds.length },
-    'Starting simulator loop'
-  );
+  logger.info({
+    mode: env.simulatorMode,
+    topicTelemetry: env.kafkaTelemetryTopic,
+    topicIncidents: env.kafkaIncidentsTopic,
+    segments: seeds.length
+  }, 'Starting simulator loop');
 
   const simulatorService = new SimulatorService(repositories, seeds);
 
