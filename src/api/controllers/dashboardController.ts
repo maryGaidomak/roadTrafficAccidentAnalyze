@@ -59,7 +59,11 @@ export class DashboardController {
 
   public segmentById = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const segment = await this.dashboardService.getSegmentById(req.params.id);
+      const segmentId = req.params.id;
+      if (!segmentId) {
+        throw new ApiError(400, 'Segment id is required');
+      }
+      const segment = await this.dashboardService.getSegmentById(segmentId);
       if (!segment) {
         throw new ApiError(404, 'Segment not found');
       }
