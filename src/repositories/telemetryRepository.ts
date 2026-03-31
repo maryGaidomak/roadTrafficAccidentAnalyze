@@ -8,8 +8,8 @@ export class TelemetryRepository extends BaseRepository<TelemetryEvent> {
     super(db, COLLECTIONS.telemetryEvents);
   }
 
-  public async findRecent(limit = DEFAULT_LIMIT): Promise<TelemetryEvent[]> {
-    return this.find({}, { sort: { timestamp: -1 }, limit });
+  public async findRecent(limit = DEFAULT_LIMIT, segmentId?: string): Promise<TelemetryEvent[]> {
+    return this.find(segmentId ? { segmentId } : {}, { sort: { timestamp: -1 }, limit });
   }
 
   public async countLast24h(since: Date): Promise<number> {

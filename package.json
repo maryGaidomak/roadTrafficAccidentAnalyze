@@ -8,8 +8,13 @@
     "build": "tsc -p tsconfig.json",
     "start": "node dist/src/index.js",
     "simulator": "tsx src/scripts/runSimulator.ts",
+    "processor": "tsx src/scripts/runProcessor.ts",
+    "seed:segments": "tsx src/scripts/seedRoadSegments.ts",
+    "seed:historical": "tsx src/scripts/seedHistoricalStats.ts",
+    "seed:risk": "tsx src/scripts/seedRiskAggregates.ts",
     "lint": "tsc --noEmit",
-    "smoke": "tsx src/scripts/smokeCheck.ts"
+    "smoke": "tsx src/scripts/smokeCheck.ts",
+    "smoke:e2e": "tsx src/scripts/smokeScenario.ts"
   },
   "keywords": [
     "node",

@@ -32,3 +32,5 @@ export const closeMongo = async (): Promise<void> => {
     logger.info('MongoDB connection closed');
   }
 };
+
+export const isMongoConnected = (): boolean => db !== null;

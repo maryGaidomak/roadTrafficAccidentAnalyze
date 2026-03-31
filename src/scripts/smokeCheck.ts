@@ -30,3 +30,5 @@ run().catch((error: Error) => {
   console.error('Smoke check failed:', error.message);
   process.exit(1);
 });
+
+export {};

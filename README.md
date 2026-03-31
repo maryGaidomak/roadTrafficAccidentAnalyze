@@ -1,97 +1,117 @@
 # Backend: Инфраструктура Big Data для обработки данных по ДТП
 
-Backend-приложение на **Node.js + TypeScript + Express + MongoDB + Kafka** для:
-- приема/генерации/публикации дорожных событий;
-- хранения событий и агрегатов в MongoDB;
-- предоставления REST API для панели мониторинга ДТП.
+Учебный backend-проект на **Node.js + TypeScript + Express + MongoDB + Kafka**.
 
-## Структура проекта
+## Что делает система
 
-```text
-src/
-  config/
-  domain/
-  api/
-    controllers/
-    routes/
-  services/
-  repositories/
-  infrastructure/
-    kafka/
-    mongo/
-  simulator/
-  utils/
-  scripts/
+- **simulator** генерирует поток дорожной телеметрии и инцидентов;
+- **processor** читает события из Kafka, валидирует их, сохраняет в MongoDB и обновляет агрегаты риска;
+- **app** отдаёт REST API для dashboard и аналитики.
+
+## Требования
+
+- Node.js 20+
+- npm 10+
+- Docker + Docker Compose
+
+## Настройка
+
+```bash
+cp .env.example .env
+npm install
 ```
 
-## Быстрый старт
+## NPM scripts
 
-1. Скопируйте переменные окружения:
-   ```bash
-   cp .env.example .env
-   ```
-2. Установите зависимости:
-   ```bash
-   npm install
-   ```
-3. Запустите инфраструктуру (MongoDB + Kafka):
-   ```bash
-   docker compose up -d mongo kafka
-   ```
-4. Запустите backend:
-   ```bash
-   npm run dev
-   ```
+- `npm run dev` — backend в watch-режиме
+- `npm run build` — сборка TypeScript
+- `npm run start` — запуск backend из `dist`
+- `npm run simulator` — запуск генератора событий
+- `npm run processor` — запуск Kafka consumer/processor
+- `npm run seed:segments` — сидирование дорожных сегментов
+- `npm run seed:historical` — сидирование исторической статистики ДТП
+- `npm run seed:risk` — сидирование начальных агрегатов риска
+- `npm run lint` — проверка TypeScript
+- `npm run smoke` — базовый smoke-check API
+- `npm run smoke:e2e` — e2e smoke-сценарий потока simulator -> Kafka -> processor -> API
 
-## API
+## API endpoints
 
 - `GET /health`
-- `GET /api/incidents/recent?limit=20`
-- `GET /api/telemetry/recent?limit=20`
-- `GET /api/risk/top?limit=20`
+- `GET /api/incidents/recent?limit=50`
+- `GET /api/telemetry/recent?segmentId=SEG-101&limit=100`
+- `GET /api/risk/top?limit=10`
 - `GET /api/stats/summary`
-- `GET /api/regions`
+- `GET /api/stats/historical?region=north&from=2026-03-01&to=2026-03-31`
 - `GET /api/segments/:id`
-- `GET /api/stats/historical?limit=20`
+- `GET /api/regions`
 
-## Kafka topics
+## Полный сценарий запуска через Docker
 
-- `road.telemetry`
-- `road.incidents`
-
-## Simulator
-
-Запуск симулятора:
+### 1) Поднять инфраструктуру и API
 
 ```bash
-npm run simulator
+docker compose up --build -d mongo kafka app
 ```
 
-Что делает:
-- каждые 2–5 секунд генерирует телеметрию;
-- с настраиваемой вероятностью создает инциденты;
-- сериализует события в JSON и публикует в Kafka;
-- при `SIMULATOR_WRITE_TO_MONGO=true` пишет сырые события в MongoDB.
-
-## Полезные скрипты
-
-- `npm run dev` — запуск API в watch режиме;
-- `npm run build` — сборка TypeScript в `dist`;
-- `npm run start` — запуск собранного приложения;
-- `npm run simulator` — запуск генератора событий;
-- `npm run lint` — проверка типов;
-- `npm run smoke` — smoke-проверка основных API endpoint'ов.
-
-## Docker
-
-Полный запуск:
+### 2) Засидировать демо-данные
 
 ```bash
-docker compose up --build
+docker compose run --rm app npm run seed:segments
+docker compose run --rm app npm run seed:historical
+docker compose run --rm app npm run seed:risk
 ```
 
-`docker-compose.yml` содержит healthcheck'и для `mongo`, `kafka` и `app`, а `app` стартует только после готовности зависимостей.
+### 3) Запустить simulator
 
-## Переменные окружения
+```bash
+docker compose up -d simulator
+```
 
-Смотрите `.env.example`.
+### 4) Запустить processor
+
+```bash
+docker compose up -d processor
+```
+
+### 5) Проверить API
+
+```bash
+curl "http://localhost:3000/health"
+curl "http://localhost:3000/api/telemetry/recent?limit=20"
+curl "http://localhost:3000/api/incidents/recent?limit=20"
+curl "http://localhost:3000/api/risk/top?limit=10"
+```
+
+## Smoke scenario (end-to-end)
+
+Когда `app`, `simulator`, `processor` запущены:
+
+```bash
+npm run smoke:e2e
+```
+
+Скрипт проверяет:
+- API отвечает на `/health`;
+- новые telemetry появляются со временем;
+- endpoint incidents доступен и отдаёт данные/изменения;
+- `risk/top` возвращает агрегаты риска.
+
+## Режимы simulator
+
+- `SIMULATOR_MODE=kafka`
+- `SIMULATOR_MODE=kafka+mongo`
+- `SIMULATOR_MODE=console`
+
+Для docker-сценария по умолчанию в `docker-compose.yml` для сервиса simulator используется `SIMULATOR_MODE=kafka`, чтобы запись в Mongo делал именно processor.
+
+## Формат ошибок API
+
+```json
+{
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "Invalid query parameter: limit"
+  }
+}
+```

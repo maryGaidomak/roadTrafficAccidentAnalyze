@@ -58,5 +58,32 @@ services:
       timeout: 5s
       retries: 10
 
+  simulator:
+    build: .
+    command: npm run simulator
+    env_file:
+      - .env
+    environment:
+      - KAFKA_BROKERS=kafka:9092
+      - SIMULATOR_MODE=kafka
+    depends_on:
+      mongo:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+
+  processor:
+    build: .
+    command: npm run processor
+    env_file:
+      - .env
+    environment:
+      - KAFKA_BROKERS=kafka:9092
+    depends_on:
+      mongo:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+
 volumes:
   mongo_data:

@@ -8,8 +8,8 @@ export class DashboardService {
     return this.repositories.incidentRepository.findRecent(limit);
   }
 
-  public getRecentTelemetry(limit?: number) {
-    return this.repositories.telemetryRepository.findRecent(limit);
+  public getRecentTelemetry(limit?: number, segmentId?: string) {
+    return this.repositories.telemetryRepository.findRecent(limit, segmentId);
   }
 
   public getTopRisk(limit?: number) {
@@ -24,8 +24,11 @@ export class DashboardService {
     return this.repositories.roadSegmentRepository.findBySegmentId(segmentId);
   }
 
-  public getHistoricalStats(limit?: number) {
-    return this.repositories.historicalAccidentStatRepository.findRecent(limit);
+  public getHistoricalStats(region?: string, from?: Date, to?: Date) {
+    if (region || from || to) {
+      return this.repositories.historicalAccidentStatRepository.findByRegionAndRange(region, from, to);
+    }
+    return this.repositories.historicalAccidentStatRepository.findRecent();
   }
 
   public async getStatsSummary(): Promise<StatsSummary> {

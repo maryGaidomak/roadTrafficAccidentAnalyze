@@ -30,6 +30,15 @@ const getBooleanEnv = (key: string, fallback: boolean): boolean => {
   return raw.toLowerCase() === 'true';
 };
 
+const getSimulatorMode = (): 'kafka' | 'kafka+mongo' | 'console' => {
+  const value = (process.env.SIMULATOR_MODE ?? '').toLowerCase();
+  if (value === 'kafka' || value === 'kafka+mongo' || value === 'console') {
+    return value;
+  }
+
+  return getBooleanEnv('SIMULATOR_WRITE_TO_MONGO', true) ? 'kafka+mongo' : 'kafka';
+};
+
 export const env = {
   nodeEnv: getEnv('NODE_ENV', 'development'),
   port: getNumberEnv('PORT', 3000),
@@ -42,5 +51,6 @@ export const env = {
   simulatorMinIntervalMs: getNumberEnv('SIMULATOR_MIN_INTERVAL_MS', 2000),
   simulatorMaxIntervalMs: getNumberEnv('SIMULATOR_MAX_INTERVAL_MS', 5000),
   simulatorIncidentProbability: getNumberEnv('SIMULATOR_INCIDENT_PROBABILITY', 0.2),
-  simulatorWriteToMongo: getBooleanEnv('SIMULATOR_WRITE_TO_MONGO', true)
+  simulatorWriteToMongo: getBooleanEnv('SIMULATOR_WRITE_TO_MONGO', true),
+  simulatorMode: getSimulatorMode()
 };

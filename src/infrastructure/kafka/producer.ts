@@ -41,6 +41,10 @@ class KafkaProducer {
       messages: [{ value: JSON.stringify(message) }]
     });
   }
+
+  public isConnected(): boolean {
+    return this.connected;
+  }
 }
 
 export const kafkaProducer = new KafkaProducer();
