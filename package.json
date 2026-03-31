@@ -1,0 +1,38 @@
+{
+  "name": "road-traffic-accident-analyze",
+  "version": "1.0.0",
+  "description": "Backend for Big Data infrastructure coursework: road accident data processing",
+  "main": "dist/src/index.js",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/src/index.js",
+    "simulator": "tsx src/scripts/runSimulator.ts",
+    "lint": "tsc --noEmit",
+    "smoke": "tsx src/scripts/smokeCheck.ts"
+  },
+  "keywords": [
+    "node",
+    "typescript",
+    "express",
+    "mongodb",
+    "kafka",
+    "road",
+    "accident"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "kafkajs": "^2.2.4",
+    "mongodb": "^6.8.0",
+    "pino": "^9.3.2"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/node": "^22.7.4",
+    "tsx": "^4.19.1",
+    "typescript": "^5.6.2",
+    "pino-pretty": "^11.2.2"
+  }
+}
