@@ -8,11 +8,18 @@
     "source": "sample-open-data"
   },
   {
-    "region_name": "Moscow Oblast",
-    "day": "2025-11-01",
-    "accidents": 17,
-    "injured": 13,
-    "deaths": 1
+    "REGIONS": ["Республика Дагестан", "Российская Федерация"],
+    "DATE_TIME": "2026-01-01T00:06:00",
+    "SUFFER_AMOUNT": 1,
+    "LOST_AMOUNT": 0,
+    "EM_TYPE": "Наезд на пешехода"
+  },
+  {
+    "REGIONS": ["Республика Дагестан", "Российская Федерация"],
+    "DATE_TIME": "2026-01-01T01:10:00",
+    "SUFFER_AMOUNT": 2,
+    "LOST_AMOUNT": 1,
+    "EM_TYPE": "Столкновение"
   },
   {
     "subject": "Saint Petersburg",

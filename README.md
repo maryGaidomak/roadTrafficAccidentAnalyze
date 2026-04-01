@@ -178,6 +178,7 @@ npm run smoke:historical
 - `lanes`
 
 Если часть полей имеет другие имена (например `segment_id`, `region_name`, `accidents`, `deaths`), импортер выполняет нормализацию.
+Для event-level исторических файлов (например записи с `REGIONS`, `DATE_TIME`, `SUFFER_AMOUNT`, `LOST_AMOUNT`) импортер агрегирует данные до уровня `region + date`.
 Записи с критически отсутствующими полями пропускаются с warning в логах.
 
 ---
