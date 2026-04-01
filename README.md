@@ -99,25 +99,6 @@ curl "http://localhost:3000/api/stats/historical"
 
 > Почему `exec`, а не `run`: `docker compose run` создаёт one-off контейнеры со случайными именами.
 
-
-### Импорт своего файла из `data/input` в Docker
-
-1. Положите файл, например: `data/input/my_historical.json`.
-2. Убедитесь, что сервис `app` запущен (`docker compose -f docker-compose.app.yml up -d app`).
-3. Запустите импорт:
-
-```bash
-docker compose -f docker-compose.app.yml exec -T app npm run import:historical -- ./data/input/my_historical.json
-```
-
-Для road segments:
-
-```bash
-docker compose -f docker-compose.app.yml exec -T app npm run import:segments -- ./data/input/my_segments.json
-```
-
-> В `docker-compose.app.yml` каталог `./data` примонтирован в контейнер как `/app/data`, поэтому файлы из `data/input` видны внутри контейнера без `docker cp`.
-
 ---
 
 ## B. Запуск big data stack (Hadoop + Spark)
