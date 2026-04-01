@@ -6,6 +6,7 @@ import { IncidentEvent, RiskAggregate, TelemetryEvent } from '../domain/models';
 import { isIncidentEventPayload, isTelemetryEventPayload } from './messageValidation';
 import { recalculateRiskAggregate } from './riskAggregateUpdater';
 import { logger } from '../utils/logger';
+import { ensureKafkaTopics } from '../infrastructure/kafka/topicManager';
 
 export class StreamProcessor {
   private readonly consumer: Consumer;
@@ -19,6 +20,7 @@ export class StreamProcessor {
   }
 
   public async run(): Promise<void> {
+    await ensureKafkaTopics();
     await this.consumer.connect();
     logger.info('Processor Kafka connected');
 

@@ -1,6 +1,7 @@
 import { Kafka, Producer } from 'kafkajs';
 import { env } from '../../config/env';
 import { logger } from '../../utils/logger';
+import { ensureKafkaTopics } from './topicManager';
 
 class KafkaProducer {
   private readonly producer: Producer;
@@ -18,6 +19,7 @@ class KafkaProducer {
     if (this.connected) {
       return;
     }
+    await ensureKafkaTopics();
     await this.producer.connect();
     this.connected = true;
     logger.info('Kafka producer connected');
