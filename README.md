@@ -157,7 +157,7 @@ docker compose -f bigdata/docker-compose.bigdata.yml exec -T namenode hdfs dfs -
 ### 9) Spark SQL (чтение из HDFS)
 
 ```bash
-docker compose -f bigdata/docker-compose.bigdata.yml exec -T spark-master spark-sql -e "SELECT 'spark-ok' as status"
+docker compose -f bigdata/docker-compose.bigdata.yml exec -T spark-master /opt/spark/bin/spark-sql -e "SELECT 'spark-ok' as status"
 ```
 
 ---
