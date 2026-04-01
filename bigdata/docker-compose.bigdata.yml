@@ -95,85 +95,65 @@ services:
       - historyserver_data:/hadoop/yarn/timeline
 
   spark-master:
-    image: bitnami/spark:3.5
+    image: apache/spark:3.5.1
     container_name: bigdata-spark-master
     hostname: spark-master
-    environment:
-      - SPARK_MODE=master
-      - SPARK_RPC_AUTHENTICATION_ENABLED=no
-      - SPARK_RPC_ENCRYPTION_ENABLED=no
-      - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
-      - SPARK_SSL_ENABLED=no
-      - SPARK_MASTER_HOST=spark-master
-      - SPARK_MASTER_PORT_NUMBER=7077
-      - SPARK_MASTER_WEBUI_PORT_NUMBER=8080
-      - HADOOP_CONF_DIR=/opt/bitnami/hadoop/etc/hadoop
-      - SPARK_CONF_DIR=/opt/bitnami/spark/conf
+    command: ["/opt/spark/bin/spark-class", "org.apache.spark.deploy.master.Master", "--host", "spark-master", "--port", "7077", "--webui-port", "8080"]
+    depends_on:
+      - namenode
     ports:
       - '7077:7077'
       - '8080:8080'
     volumes:
-      - ./spark/conf/core-site.xml:/opt/bitnami/hadoop/etc/hadoop/core-site.xml:ro
-      - ./spark/conf/hdfs-site.xml:/opt/bitnami/hadoop/etc/hadoop/hdfs-site.xml:ro
-      - ./data:/opt/bitnami/spark/local-data
-    depends_on:
-      - namenode
+      - ./spark/conf/core-site.xml:/opt/spark/conf/core-site.xml:ro
+      - ./spark/conf/hdfs-site.xml:/opt/spark/conf/hdfs-site.xml:ro
+      - ./spark:/opt/spark/jobs
 
   spark-worker1:
-    image: bitnami/spark:3.5
+    image: apache/spark:3.5.1
     container_name: bigdata-spark-worker1
     hostname: spark-worker1
-    environment:
-      - SPARK_MODE=worker
-      - SPARK_MASTER_URL=spark://spark-master:7077
-      - SPARK_WORKER_MEMORY=2G
-      - SPARK_WORKER_CORES=2
-      - SPARK_WORKER_WEBUI_PORT_NUMBER=8081
-      - HADOOP_CONF_DIR=/opt/bitnami/hadoop/etc/hadoop
     depends_on:
       - spark-master
+    command: ["/opt/spark/bin/spark-class", "org.apache.spark.deploy.worker.Worker", "spark://spark-master:7077", "--webui-port", "8081"]
+    environment:
+      - SPARK_WORKER_CORES=2
+      - SPARK_WORKER_MEMORY=2g
     ports:
       - '8081:8081'
     volumes:
-      - ./spark/conf/core-site.xml:/opt/bitnami/hadoop/etc/hadoop/core-site.xml:ro
-      - ./spark/conf/hdfs-site.xml:/opt/bitnami/hadoop/etc/hadoop/hdfs-site.xml:ro
+      - ./spark/conf/core-site.xml:/opt/spark/conf/core-site.xml:ro
+      - ./spark/conf/hdfs-site.xml:/opt/spark/conf/hdfs-site.xml:ro
 
   spark-worker2:
-    image: bitnami/spark:3.5
+    image: apache/spark:3.5.1
     container_name: bigdata-spark-worker2
     hostname: spark-worker2
-    environment:
-      - SPARK_MODE=worker
-      - SPARK_MASTER_URL=spark://spark-master:7077
-      - SPARK_WORKER_MEMORY=2G
-      - SPARK_WORKER_CORES=2
-      - SPARK_WORKER_WEBUI_PORT_NUMBER=8082
-      - HADOOP_CONF_DIR=/opt/bitnami/hadoop/etc/hadoop
     depends_on:
       - spark-master
+    command: ["/opt/spark/bin/spark-class", "org.apache.spark.deploy.worker.Worker", "spark://spark-master:7077", "--webui-port", "8082"]
+    environment:
+      - SPARK_WORKER_CORES=2
+      - SPARK_WORKER_MEMORY=2g
     ports:
       - '8082:8082'
     volumes:
-      - ./spark/conf/core-site.xml:/opt/bitnami/hadoop/etc/hadoop/core-site.xml:ro
-      - ./spark/conf/hdfs-site.xml:/opt/bitnami/hadoop/etc/hadoop/hdfs-site.xml:ro
+      - ./spark/conf/core-site.xml:/opt/spark/conf/core-site.xml:ro
+      - ./spark/conf/hdfs-site.xml:/opt/spark/conf/hdfs-site.xml:ro
 
   spark-client:
-    image: bitnami/spark:3.5
+    image: apache/spark:3.5.1
     container_name: bigdata-spark-client
     hostname: spark-client
     depends_on:
       - spark-master
     command: ["/bin/bash", "-lc", "tail -f /dev/null"]
-    environment:
-      - SPARK_MODE=client
-      - SPARK_MASTER_URL=spark://spark-master:7077
-      - HADOOP_CONF_DIR=/opt/bitnami/hadoop/etc/hadoop
     ports:
       - '4040:4040'
     volumes:
-      - ./spark:/opt/bitnami/spark/jobs
-      - ./spark/conf/core-site.xml:/opt/bitnami/hadoop/etc/hadoop/core-site.xml:ro
-      - ./spark/conf/hdfs-site.xml:/opt/bitnami/hadoop/etc/hadoop/hdfs-site.xml:ro
+      - ./spark:/opt/spark/jobs
+      - ./spark/conf/core-site.xml:/opt/spark/conf/core-site.xml:ro
+      - ./spark/conf/hdfs-site.xml:/opt/spark/conf/hdfs-site.xml:ro
 
 volumes:
   namenode_data:

@@ -81,7 +81,7 @@ docker compose -f bigdata/docker-compose.bigdata.yml down -v
 - Spark Worker 2 UI: http://localhost:8082
 - Spark driver UI (client jobs): http://localhost:4040
 
-> В этом контуре Spark UI явно вынесен на `localhost:4040` через `spark-client`.
+> В этом контуре Spark UI явно вынесен на `localhost:4040` через `spark-client` (после запуска spark-submit).
 
 ---
 
@@ -166,7 +166,7 @@ docker exec -it bigdata-namenode hdfs dfs -cat /user/root/output/accident_factor
 ```bash
 docker exec -it bigdata-spark-client spark-submit \
   --master spark://spark-master:7077 \
-  /opt/bitnami/spark/jobs/spark_sql_scenario.py
+  /opt/spark/jobs/spark_sql_scenario.py
 ```
 
 ---
@@ -196,5 +196,5 @@ docker cp bigdata/data/hdfs-input/. bigdata-namenode:/tmp/hdfs-input/
 docker exec -it bigdata-namenode bash -lc 'hdfs dfs -mkdir -p /user/root/input && hdfs dfs -put -f /tmp/hdfs-input/*.csv /user/root/input/'
 
 # 4) Spark SQL сценарий
-docker exec -it bigdata-spark-client spark-submit --master spark://spark-master:7077 /opt/bitnami/spark/jobs/spark_sql_scenario.py
+docker exec -it bigdata-spark-client spark-submit --master spark://spark-master:7077 /opt/spark/jobs/spark_sql_scenario.py
 ```
