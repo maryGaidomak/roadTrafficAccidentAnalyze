@@ -1,0 +1,31 @@
+[
+  {
+    "region": "Moscow",
+    "date": "2025-11-01",
+    "accidentsCount": 21,
+    "injuriesCount": 19,
+    "fatalitiesCount": 2,
+    "source": "sample-open-data"
+  },
+  {
+    "REGIONS": ["Республика Дагестан", "Российская Федерация"],
+    "DATE_TIME": "2026-01-01T00:06:00",
+    "SUFFER_AMOUNT": 1,
+    "LOST_AMOUNT": 0,
+    "EM_TYPE": "Наезд на пешехода"
+  },
+  {
+    "REGIONS": ["Республика Дагестан", "Российская Федерация"],
+    "DATE_TIME": "2026-01-01T01:10:00",
+    "SUFFER_AMOUNT": 2,
+    "LOST_AMOUNT": 1,
+    "EM_TYPE": "Столкновение"
+  },
+  {
+    "subject": "Saint Petersburg",
+    "event_date": "2025-11-02T00:00:00Z",
+    "totalAccidents": 12,
+    "totalInjuries": 8,
+    "fatalities": 0
+  }
+]
