@@ -1,0 +1,141 @@
+services:
+  namenode:
+    image: bde2020/hadoop-namenode:2.0.0-hadoop3.2.1-java8
+    container_name: bigdata-namenode
+    env_file:
+      - ./hadoop.env
+    environment:
+      - CLUSTER_NAME=road-traffic-hadoop
+    ports:
+      - '9870:9870'
+      - '9000:9000'
+    volumes:
+      - namenode_data:/hadoop/dfs/name
+
+  datanode1:
+    image: bde2020/hadoop-datanode:2.0.0-hadoop3.2.1-java8
+    container_name: bigdata-datanode1
+    env_file:
+      - ./hadoop.env
+    environment:
+      - SERVICE_PRECONDITION=namenode:9870
+    depends_on:
+      - namenode
+    volumes:
+      - datanode1_data:/hadoop/dfs/data
+
+  datanode2:
+    image: bde2020/hadoop-datanode:2.0.0-hadoop3.2.1-java8
+    container_name: bigdata-datanode2
+    env_file:
+      - ./hadoop.env
+    environment:
+      - SERVICE_PRECONDITION=namenode:9870
+    depends_on:
+      - namenode
+    volumes:
+      - datanode2_data:/hadoop/dfs/data
+
+  datanode3:
+    image: bde2020/hadoop-datanode:2.0.0-hadoop3.2.1-java8
+    container_name: bigdata-datanode3
+    env_file:
+      - ./hadoop.env
+    environment:
+      - SERVICE_PRECONDITION=namenode:9870
+    depends_on:
+      - namenode
+    volumes:
+      - datanode3_data:/hadoop/dfs/data
+
+  resourcemanager:
+    image: bde2020/hadoop-resourcemanager:2.0.0-hadoop3.2.1-java8
+    container_name: bigdata-resourcemanager
+    env_file:
+      - ./hadoop.env
+    environment:
+      - SERVICE_PRECONDITION=namenode:9000 namenode:9870 datanode1:9864 datanode2:9864 datanode3:9864
+    depends_on:
+      - namenode
+      - datanode1
+      - datanode2
+      - datanode3
+    ports:
+      - '8088:8088'
+
+  nodemanager1:
+    image: bde2020/hadoop-nodemanager:2.0.0-hadoop3.2.1-java8
+    container_name: bigdata-nodemanager1
+    env_file:
+      - ./hadoop.env
+    environment:
+      - SERVICE_PRECONDITION=namenode:9000 namenode:9870 resourcemanager:8088
+    depends_on:
+      - resourcemanager
+
+  historyserver:
+    image: bde2020/hadoop-historyserver:2.0.0-hadoop3.2.1-java8
+    container_name: bigdata-historyserver
+    env_file:
+      - ./hadoop.env
+    environment:
+      - SERVICE_PRECONDITION=namenode:9000 namenode:9870 resourcemanager:8088
+    depends_on:
+      - resourcemanager
+    ports:
+      - '8188:8188'
+    volumes:
+      - historyserver_data:/hadoop/yarn/timeline
+
+  spark-master:
+    image: bitnami/spark:3.5
+    container_name: bigdata-spark-master
+    environment:
+      - SPARK_MODE=master
+      - SPARK_MASTER_HOST=spark-master
+      - SPARK_MASTER_PORT=7077
+      - SPARK_MASTER_WEBUI_PORT=8080
+    ports:
+      - '7077:7077'
+      - '8080:8080'
+    volumes:
+      - ../data:/opt/bitnami/spark/data
+
+  spark-worker1:
+    image: bitnami/spark:3.5
+    container_name: bigdata-spark-worker1
+    depends_on:
+      - spark-master
+    environment:
+      - SPARK_MODE=worker
+      - SPARK_MASTER_URL=spark://spark-master:7077
+      - SPARK_WORKER_MEMORY=2G
+      - SPARK_WORKER_CORES=2
+      - SPARK_WORKER_WEBUI_PORT=8081
+    ports:
+      - '8081:8081'
+    volumes:
+      - ../data:/opt/bitnami/spark/data
+
+  spark-worker2:
+    image: bitnami/spark:3.5
+    container_name: bigdata-spark-worker2
+    depends_on:
+      - spark-master
+    environment:
+      - SPARK_MODE=worker
+      - SPARK_MASTER_URL=spark://spark-master:7077
+      - SPARK_WORKER_MEMORY=2G
+      - SPARK_WORKER_CORES=2
+      - SPARK_WORKER_WEBUI_PORT=8082
+    ports:
+      - '8082:8082'
+    volumes:
+      - ../data:/opt/bitnami/spark/data
+
+volumes:
+  namenode_data:
+  datanode1_data:
+  datanode2_data:
+  datanode3_data:
+  historyserver_data:

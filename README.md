@@ -2,11 +2,16 @@
 
 Учебный backend-проект на **Node.js + TypeScript + Express + MongoDB + Kafka**.
 
-## Что делает система
+В репозитории теперь два независимых контура:
 
-- **simulator** генерирует поток дорожной телеметрии и инцидентов;
-- **processor** читает события из Kafka, валидирует их, сохраняет в MongoDB и обновляет агрегаты риска;
-- **app** отдаёт REST API для dashboard и аналитики.
+1. **Application stack**: `app`, `mongo`, `kafka`, `simulator`, `processor`
+2. **Big data stack**: Hadoop (HDFS + YARN) + Spark
+
+## Файлы Compose
+
+- `docker-compose.app.yml` — только application stack.
+- `bigdata/docker-compose.bigdata.yml` — только big data stack.
+- `docker-compose.yml` — совместим с app-контуром (legacy, оставлен рабочим).
 
 ## Требования
 
@@ -21,7 +26,7 @@ cp .env.example .env
 npm install
 ```
 
-> При запуске через Docker Compose адреса инфраструктуры переопределяются автоматически: `MONGO_URI=mongodb://mongo:27017`, `KAFKA_BROKERS=kafka:9092`.
+> При запуске через Docker Compose адреса инфраструктуры для контейнеров переопределяются автоматически: `MONGO_URI=mongodb://mongo:27017`, `KAFKA_BROKERS=kafka:9092`.
 
 ## NPM scripts
 
@@ -35,10 +40,9 @@ npm install
 - `npm run seed:risk` — сидирование **demo** агрегатов риска
 - `npm run import:segments -- ./data/examples/road_segments.sample.json` — импорт road segments из JSON/CSV
 - `npm run import:historical -- ./data/examples/historical_stats.sample.json` — импорт historical accident stats из JSON/CSV
-- `npm run lint` — проверка TypeScript
 - `npm run smoke` — базовый smoke-check API
 - `npm run smoke:e2e` — e2e smoke-сценарий потока simulator -> Kafka -> processor -> API
-- `npm run smoke:historical` — smoke-check импорта historical данных + проверка `/api/stats/historical`
+- `npm run smoke:historical` — smoke-check historical import + `/api/stats/historical`
 
 ## API endpoints
 
@@ -53,34 +57,33 @@ npm install
 
 ---
 
-## Demo mode (сценарий A)
+## A. Запуск application stack
 
-Используется для быстрой демонстрации без внешних исторических файлов.
-
-### 1) Поднять инфраструктуру и API
+### 1) Поднять backend-контур
 
 ```bash
-docker compose up --build -d mongo kafka app
+docker compose -f docker-compose.app.yml up --build -d mongo kafka app
 ```
 
-### 2) Засидировать demo data
+### 2) Demo mode (быстрая демонстрация)
 
 ```bash
-docker compose exec -T app npm run seed:segments
-docker compose exec -T app npm run seed:historical
-docker compose exec -T app npm run seed:risk
+docker compose -f docker-compose.app.yml exec -T app npm run seed:segments
+docker compose -f docker-compose.app.yml exec -T app npm run seed:historical
+docker compose -f docker-compose.app.yml exec -T app npm run seed:risk
 ```
 
-### 3) Запустить simulator
+### 3) Real data mode (импорт файлов)
 
 ```bash
-docker compose up -d simulator
+docker compose -f docker-compose.app.yml exec -T app npm run import:segments -- ./data/examples/road_segments.sample.json
+docker compose -f docker-compose.app.yml exec -T app npm run import:historical -- ./data/examples/historical_stats.sample.json
 ```
 
-### 4) Запустить processor
+### 4) Запустить simulator и processor
 
 ```bash
-docker compose up -d processor
+docker compose -f docker-compose.app.yml up -d simulator processor
 ```
 
 ### 5) Проверить API
@@ -90,177 +93,110 @@ curl "http://localhost:3000/health"
 curl "http://localhost:3000/api/telemetry/recent?limit=20"
 curl "http://localhost:3000/api/incidents/recent?limit=20"
 curl "http://localhost:3000/api/risk/top?limit=10"
-curl "http://localhost:3000/api/stats/historical?region=Moscow"
-```
-
----
-
-## Real data import mode (сценарий B)
-
-Используется для загрузки исторических данных и дорожных сегментов из реальных/внешних файлов.
-
-### 1) Поднять инфраструктуру и API
-
-```bash
-docker compose up --build -d mongo kafka app
-```
-
-### 2) Импортировать road segments из файла
-
-```bash
-docker compose exec -T app npm run import:segments -- ./data/examples/road_segments.sample.json
-# или через env:
-# docker compose exec -T -e IMPORT_FILE_PATH=./data/examples/road_segments.sample.json app npm run import:segments
-```
-
-### 3) Импортировать historical accident stats из файла
-
-```bash
-docker compose exec -T app npm run import:historical -- ./data/examples/historical_stats.sample.json
-# или через env:
-# docker compose exec -T -e IMPORT_FILE_PATH=./data/examples/historical_stats.sample.json app npm run import:historical
-```
-
-### 4) Запустить simulator
-
-```bash
-docker compose up -d simulator
-```
-
-### 5) Запустить processor
-
-```bash
-docker compose up -d processor
-```
-
-### 6) Проверить API
-
-```bash
-curl "http://localhost:3000/health"
-curl "http://localhost:3000/api/telemetry/recent?limit=20"
-curl "http://localhost:3000/api/incidents/recent?limit=20"
-curl "http://localhost:3000/api/risk/top?limit=10"
 curl "http://localhost:3000/api/stats/historical"
 ```
 
-### 7) Дополнительный smoke-check historical import
+> Почему `exec`, а не `run`: `docker compose run` создаёт one-off контейнеры со случайными именами.
+
+---
+
+## B. Запуск big data stack (Hadoop + Spark)
+
+### 1) Поднять Hadoop и Spark
 
 ```bash
-npm run smoke:historical
+docker compose -f bigdata/docker-compose.bigdata.yml up -d
+```
+
+### 2) Проверить UI
+
+- NameNode UI: http://localhost:9870
+- ResourceManager UI: http://localhost:8088
+- Spark Master UI: http://localhost:8080
+- Spark Worker UI: http://localhost:8081, http://localhost:8082
+
+### 3) Проверить HDFS report
+
+```bash
+docker compose -f bigdata/docker-compose.bigdata.yml exec -T namenode hdfs dfsadmin -report
+```
+
+### 4) Создать директорию в HDFS
+
+```bash
+docker compose -f bigdata/docker-compose.bigdata.yml exec -T namenode hdfs dfs -mkdir -p /data/traffic/input
+```
+
+### 5) Загрузить файл в HDFS
+
+```bash
+docker cp data/hdfs-input/traffic_events_sample.txt bigdata-namenode:/tmp/traffic_events_sample.txt
+docker compose -f bigdata/docker-compose.bigdata.yml exec -T namenode hdfs dfs -put -f /tmp/traffic_events_sample.txt /data/traffic/input/
+```
+
+### 6) Показать ls / cat / setrep
+
+```bash
+docker compose -f bigdata/docker-compose.bigdata.yml exec -T namenode hdfs dfs -ls /data/traffic/input
+docker compose -f bigdata/docker-compose.bigdata.yml exec -T namenode hdfs dfs -cat /data/traffic/input/traffic_events_sample.txt
+docker compose -f bigdata/docker-compose.bigdata.yml exec -T namenode hdfs dfs -setrep -w 2 /data/traffic/input/traffic_events_sample.txt
+```
+
+### 7) Выполнить MapReduce (wordcount)
+
+```bash
+docker compose -f bigdata/docker-compose.bigdata.yml exec -T namenode hadoop jar /opt/hadoop-3.2.1/share/hadoop/mapreduce/hadoop-mapreduce-examples-3.2.1.jar wordcount /data/traffic/input /data/traffic/output-wordcount
+```
+
+### 8) Показать результат MapReduce
+
+```bash
+docker compose -f bigdata/docker-compose.bigdata.yml exec -T namenode hdfs dfs -cat /data/traffic/output-wordcount/part-r-00000
+```
+
+### 9) Spark SQL (чтение из HDFS)
+
+```bash
+docker compose -f bigdata/docker-compose.bigdata.yml exec -T spark-master spark-sql -e "SELECT 'spark-ok' as status"
 ```
 
 ---
 
-## Форматы входных файлов для импорта
+## Как продемонстрировать Hadoop/Spark часть
 
-Примеры лежат в `data/examples/`:
-
-- `historical_stats.sample.json`
-- `road_segments.sample.json`
-
-Поддерживаемые форматы: **JSON** и **CSV**.
-
-### Минимальная схема historical данных
-
-- `region`
-- `date`
-- `accidentsCount`
-- `injuriesCount`
-- `fatalitiesCount`
-- `event_time` (опционально, будет вычислен)
-- `updatedAt` (проставляется при импорте)
-
-### Минимальная схема road segments
-
-- `segmentId`
-- `region`
-- `name`
-- `startPoint`/`endPoint` или координаты (`startLat/startLon/endLat/endLon` или `coordinates`)
-- `speedLimit`
-- `lanes`
-
-Если часть полей имеет другие имена (например `segment_id`, `region_name`, `accidents`, `deaths`), импортер выполняет нормализацию.
-Для event-level исторических файлов (например записи с `REGIONS`, `DATE_TIME`, `SUFFER_AMOUNT`, `LOST_AMOUNT`) импортер агрегирует данные до уровня `region + date`.
-Записи с критически отсутствующими полями пропускаются с warning в логах.
+1. Поднять big data stack: `docker compose -f bigdata/docker-compose.bigdata.yml up -d`
+2. Открыть NameNode UI: `http://localhost:9870`
+3. Выполнить `hdfs dfsadmin -report`
+4. Создать директорию в HDFS
+5. Загрузить файл в HDFS
+6. Показать `hdfs dfs -ls`, `hdfs dfs -cat`, `hdfs dfs -setrep`
+7. Запустить MapReduce `wordcount`
+8. Показать output в HDFS
+9. Открыть Spark UI (`http://localhost:8080`) или выполнить Spark SQL
 
 ---
 
-## Smoke scenario (end-to-end)
+## Структура данных для batch
 
-Когда `app`, `simulator`, `processor` запущены:
+- `data/examples/` — примеры JSON для импортов backend
+- `data/historical/` — место для исторических batch-файлов
+- `data/hdfs-input/` — входные файлы для HDFS/MapReduce/Spark
 
-```bash
-npm run smoke:e2e
-```
+## Форматы входных файлов для импортера backend
 
-Скрипт проверяет:
-- API отвечает на `/health`;
-- новые telemetry появляются со временем;
-- endpoint incidents доступен и отдаёт данные/изменения;
-- `risk/top` возвращает агрегаты риска.
+Примеры:
+- `data/examples/historical_stats.sample.json`
+- `data/examples/road_segments.sample.json`
 
-## Режимы simulator
+Поддерживаются `JSON` и `CSV`.
+Для event-level исторических файлов (например `REGIONS`, `DATE_TIME`, `SUFFER_AMOUNT`, `LOST_AMOUNT`) импортёр агрегирует данные до уровня `region + date`.
 
-- `SIMULATOR_MODE=kafka`
-- `SIMULATOR_MODE=kafka+mongo`
-- `SIMULATOR_MODE=console`
+## Порты
 
-Для docker-сценария по умолчанию в `docker-compose.yml` для сервиса simulator используется `SIMULATOR_MODE=kafka`, чтобы запись в Mongo делал именно processor.
-
-## Как показать проект преподавателю
-
-Рекомендуемый демонстрационный сценарий защиты:
-
-1. Поднять контейнеры:
-   ```bash
-   docker compose up --build -d mongo kafka app
-   ```
-2. Загрузить данные (demo seed или real import):
-   ```bash
-   docker compose exec -T app npm run seed:segments
-   docker compose exec -T app npm run seed:historical
-   docker compose exec -T app npm run seed:risk
-   # либо import:segments + import:historical
-   ```
-3. Запустить simulator:
-   ```bash
-   docker compose up -d simulator
-   ```
-4. Запустить processor:
-   ```bash
-   docker compose up -d processor
-   ```
-5. Открыть `/health`:
-   ```bash
-   curl "http://localhost:3000/health"
-   ```
-6. Открыть `/api/telemetry/recent`:
-   ```bash
-   curl "http://localhost:3000/api/telemetry/recent?limit=10"
-   ```
-7. Открыть `/api/incidents/recent`:
-   ```bash
-   curl "http://localhost:3000/api/incidents/recent?limit=10"
-   ```
-8. Открыть `/api/risk/top`:
-   ```bash
-   curl "http://localhost:3000/api/risk/top?limit=5"
-   ```
-9. Открыть `/api/stats/historical`:
-   ```bash
-   curl "http://localhost:3000/api/stats/historical"
-   ```
-
-> Примечание: `docker compose run` создаёт one-off контейнеры с случайными именами.
-> Чтобы не видеть дополнительные "random-name" контейнеры, используйте `docker compose exec -T app ...` как в командах выше.
-
-## Формат ошибок API
-
-```json
-{
-  "error": {
-    "code": "VALIDATION_ERROR",
-    "message": "Invalid query parameter: limit"
-  }
-}
-```
+- NameNode UI: `9870`
+- ResourceManager UI: `8088`
+- Spark Master UI: `8080`
+- Spark Worker UI: `8081`, `8082`
+- App API: `3000`
+- Kafka: `9092`
+- MongoDB: `27017`
