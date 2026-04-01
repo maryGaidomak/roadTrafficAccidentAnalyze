@@ -11,32 +11,32 @@ const run = async (): Promise<void> => {
   await collection.insertMany([
     {
       segmentId: 'SEG-101',
-      region: 'north',
-      name: 'Northern Highway A',
-      startPoint: { lat: 55.76, lon: 37.61 },
-      endPoint: { lat: 55.8, lon: 37.7 },
-      speedLimit: 80,
-      lanes: 3,
+      region: 'Moscow',
+      name: 'MKAD North Arc',
+      startPoint: { lat: 55.887, lon: 37.442 },
+      endPoint: { lat: 55.883, lon: 37.567 },
+      speedLimit: 100,
+      lanes: 5,
       createdAt: now,
       updatedAt: now
     },
     {
       segmentId: 'SEG-102',
-      region: 'north',
-      name: 'Ring Connector N2',
-      startPoint: { lat: 55.79, lon: 37.58 },
-      endPoint: { lat: 55.83, lon: 37.66 },
-      speedLimit: 70,
-      lanes: 2,
+      region: 'Moscow',
+      name: 'Leningradsky Prospekt',
+      startPoint: { lat: 55.804, lon: 37.515 },
+      endPoint: { lat: 55.789, lon: 37.558 },
+      speedLimit: 80,
+      lanes: 4,
       createdAt: now,
       updatedAt: now
     },
     {
       segmentId: 'SEG-201',
-      region: 'south',
-      name: 'South Transit Artery',
-      startPoint: { lat: 55.68, lon: 37.62 },
-      endPoint: { lat: 55.63, lon: 37.71 },
+      region: 'Moscow Oblast',
+      name: 'M-7 Volga (Balashikha segment)',
+      startPoint: { lat: 55.811, lon: 37.965 },
+      endPoint: { lat: 55.803, lon: 38.029 },
       speedLimit: 90,
       lanes: 4,
       createdAt: now,
@@ -44,29 +44,29 @@ const run = async (): Promise<void> => {
     },
     {
       segmentId: 'SEG-301',
-      region: 'west',
-      name: 'West Industrial Bypass',
-      startPoint: { lat: 55.76, lon: 37.4 },
-      endPoint: { lat: 55.71, lon: 37.48 },
-      speedLimit: 60,
-      lanes: 2,
+      region: 'Saint Petersburg',
+      name: 'KAD South-West segment',
+      startPoint: { lat: 59.846, lon: 30.232 },
+      endPoint: { lat: 59.873, lon: 30.165 },
+      speedLimit: 110,
+      lanes: 4,
       createdAt: now,
       updatedAt: now
     },
     {
       segmentId: 'SEG-401',
-      region: 'east',
-      name: 'East Suburban Route',
-      startPoint: { lat: 55.77, lon: 37.77 },
-      endPoint: { lat: 55.74, lon: 37.86 },
-      speedLimit: 75,
+      region: 'Tatarstan',
+      name: 'M-7 Kazan bypass',
+      startPoint: { lat: 55.779, lon: 49.082 },
+      endPoint: { lat: 55.803, lon: 49.197 },
+      speedLimit: 90,
       lanes: 3,
       createdAt: now,
       updatedAt: now
     }
   ]);
 
-  logger.info('Road segments seeded');
+  logger.info('Road segments demo data seeded');
   await closeMongo();
 };
 
