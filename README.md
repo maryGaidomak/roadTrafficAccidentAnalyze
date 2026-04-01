@@ -21,6 +21,8 @@ cp .env.example .env
 npm install
 ```
 
+> При запуске через Docker Compose адреса инфраструктуры переопределяются автоматически: `MONGO_URI=mongodb://mongo:27017`, `KAFKA_BROKERS=kafka:9092`.
+
 ## NPM scripts
 
 - `npm run dev` — backend в watch-режиме
