@@ -1,0 +1,6 @@
+Moscow ACCIDENT
+Moscow TRAFFIC_JAM
+Moscow ACCIDENT
+SaintPetersburg ROAD_BLOCK
+Tatarstan ACCIDENT
+KrasnodarKrai WEATHER_HAZARD
