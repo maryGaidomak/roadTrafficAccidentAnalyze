@@ -1,0 +1,11 @@
+vehicle_id,accident_id,vehicle_type,vehicle_age,damage_level
+V001,A001,car,6,medium
+V002,A001,truck,9,high
+V003,A002,car,2,low
+V004,A003,bus,4,high
+V005,A003,car,12,high
+V006,A004,motorcycle,3,low
+V007,A005,car,7,medium
+V008,A006,truck,10,high
+V009,A007,car,5,medium
+V010,A008,car,1,high

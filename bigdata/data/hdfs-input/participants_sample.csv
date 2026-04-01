@@ -1,0 +1,12 @@
+participant_id,accident_id,role,age,injury_severity,seatbelt_used
+P001,A001,driver,34,minor,true
+P002,A001,passenger,30,minor,true
+P003,A002,driver,49,minor,true
+P004,A003,driver,42,severe,false
+P005,A003,passenger,39,fatal,false
+P006,A004,driver,27,none,true
+P007,A005,driver,54,minor,true
+P008,A006,driver,45,severe,true
+P009,A007,driver,31,severe,false
+P010,A008,driver,24,fatal,false
+P011,A008,passenger,22,severe,false
