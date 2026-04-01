@@ -1,0 +1,30 @@
+[
+  {
+    "segmentId": "SEG-MSK-501",
+    "region": "Moscow",
+    "name": "Tverskaya Street",
+    "startPoint": { "lat": 55.7603, "lon": 37.6051 },
+    "endPoint": { "lat": 55.7723, "lon": 37.6048 },
+    "speedLimit": 60,
+    "lanes": 4
+  },
+  {
+    "segment_id": "SEG-SPB-110",
+    "region_name": "Saint Petersburg",
+    "title": "Nevsky Prospekt",
+    "startLat": 59.9343,
+    "startLon": 30.3351,
+    "endLat": 59.9502,
+    "endLon": 30.3165,
+    "max_speed": 60,
+    "lane_count": 3
+  },
+  {
+    "id": "SEG-KRD-205",
+    "region": "Krasnodar Krai",
+    "name": "M-4 Don (Krasnodar approach)",
+    "coordinates": [[38.9753,45.0355],[39.0571,45.062]],
+    "speed_limit": 90,
+    "lanes": 3
+  }
+]

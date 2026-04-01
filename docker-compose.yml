@@ -40,7 +40,9 @@ services:
     env_file:
       - .env
     environment:
+      - MONGO_URI=mongodb://mongo:27017
       - KAFKA_BROKERS=kafka:9092
+      - KAFKAJS_NO_PARTITIONER_WARNING=1
     depends_on:
       mongo:
         condition: service_healthy
@@ -64,7 +66,9 @@ services:
     env_file:
       - .env
     environment:
+      - MONGO_URI=mongodb://mongo:27017
       - KAFKA_BROKERS=kafka:9092
+      - KAFKAJS_NO_PARTITIONER_WARNING=1
       - SIMULATOR_MODE=kafka
     depends_on:
       mongo:
@@ -78,7 +82,9 @@ services:
     env_file:
       - .env
     environment:
+      - MONGO_URI=mongodb://mongo:27017
       - KAFKA_BROKERS=kafka:9092
+      - KAFKAJS_NO_PARTITIONER_WARNING=1
     depends_on:
       mongo:
         condition: service_healthy
