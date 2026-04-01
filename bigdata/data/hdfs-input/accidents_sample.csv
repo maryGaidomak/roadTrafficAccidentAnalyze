@@ -1,0 +1,9 @@
+accident_id,event_time,region,road_segment,severity,weather,time_of_day,injured_count,fatal_count
+A001,2026-01-12T07:35:00Z,North,M10,high,snow,morning,2,0
+A002,2026-01-12T19:05:00Z,North,M11,medium,rain,evening,1,0
+A003,2026-01-13T23:15:00Z,South,S44,critical,fog,night,3,1
+A004,2026-01-14T13:40:00Z,South,S18,low,clear,day,0,0
+A005,2026-01-14T08:10:00Z,West,W07,medium,clear,morning,1,0
+A006,2026-01-15T17:25:00Z,West,W07,high,rain,evening,2,0
+A007,2026-01-15T06:55:00Z,East,E31,high,snow,morning,2,0
+A008,2026-01-16T21:05:00Z,East,E19,critical,ice,night,4,2

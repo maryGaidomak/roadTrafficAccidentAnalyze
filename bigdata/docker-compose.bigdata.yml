@@ -2,6 +2,7 @@ services:
   namenode:
     image: bde2020/hadoop-namenode:2.0.0-hadoop3.2.1-java8
     container_name: bigdata-namenode
+    hostname: namenode
     env_file:
       - ./hadoop.env
     environment:
@@ -15,6 +16,7 @@ services:
   datanode1:
     image: bde2020/hadoop-datanode:2.0.0-hadoop3.2.1-java8
     container_name: bigdata-datanode1
+    hostname: datanode1
     env_file:
       - ./hadoop.env
     environment:
@@ -27,6 +29,7 @@ services:
   datanode2:
     image: bde2020/hadoop-datanode:2.0.0-hadoop3.2.1-java8
     container_name: bigdata-datanode2
+    hostname: datanode2
     env_file:
       - ./hadoop.env
     environment:
@@ -39,6 +42,7 @@ services:
   datanode3:
     image: bde2020/hadoop-datanode:2.0.0-hadoop3.2.1-java8
     container_name: bigdata-datanode3
+    hostname: datanode3
     env_file:
       - ./hadoop.env
     environment:
@@ -51,6 +55,7 @@ services:
   resourcemanager:
     image: bde2020/hadoop-resourcemanager:2.0.0-hadoop3.2.1-java8
     container_name: bigdata-resourcemanager
+    hostname: resourcemanager
     env_file:
       - ./hadoop.env
     environment:
@@ -66,6 +71,7 @@ services:
   nodemanager1:
     image: bde2020/hadoop-nodemanager:2.0.0-hadoop3.2.1-java8
     container_name: bigdata-nodemanager1
+    hostname: nodemanager1
     env_file:
       - ./hadoop.env
     environment:
@@ -76,6 +82,7 @@ services:
   historyserver:
     image: bde2020/hadoop-historyserver:2.0.0-hadoop3.2.1-java8
     container_name: bigdata-historyserver
+    hostname: historyserver
     env_file:
       - ./hadoop.env
     environment:
@@ -88,36 +95,85 @@ services:
       - historyserver_data:/hadoop/yarn/timeline
 
   spark-master:
-    image: apache/spark:3.5.1
+    image: bitnami/spark:3.5
     container_name: bigdata-spark-master
-    command: ["/opt/spark/bin/spark-class", "org.apache.spark.deploy.master.Master", "--host", "spark-master", "--port", "7077", "--webui-port", "8080"]
+    hostname: spark-master
+    environment:
+      - SPARK_MODE=master
+      - SPARK_RPC_AUTHENTICATION_ENABLED=no
+      - SPARK_RPC_ENCRYPTION_ENABLED=no
+      - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
+      - SPARK_SSL_ENABLED=no
+      - SPARK_MASTER_HOST=spark-master
+      - SPARK_MASTER_PORT_NUMBER=7077
+      - SPARK_MASTER_WEBUI_PORT_NUMBER=8080
+      - HADOOP_CONF_DIR=/opt/bitnami/hadoop/etc/hadoop
+      - SPARK_CONF_DIR=/opt/bitnami/spark/conf
     ports:
       - '7077:7077'
       - '8080:8080'
     volumes:
-      - ../data:/opt/spark/data
+      - ./spark/conf/core-site.xml:/opt/bitnami/hadoop/etc/hadoop/core-site.xml:ro
+      - ./spark/conf/hdfs-site.xml:/opt/bitnami/hadoop/etc/hadoop/hdfs-site.xml:ro
+      - ./data:/opt/bitnami/spark/local-data
+    depends_on:
+      - namenode
 
   spark-worker1:
-    image: apache/spark:3.5.1
+    image: bitnami/spark:3.5
     container_name: bigdata-spark-worker1
+    hostname: spark-worker1
+    environment:
+      - SPARK_MODE=worker
+      - SPARK_MASTER_URL=spark://spark-master:7077
+      - SPARK_WORKER_MEMORY=2G
+      - SPARK_WORKER_CORES=2
+      - SPARK_WORKER_WEBUI_PORT_NUMBER=8081
+      - HADOOP_CONF_DIR=/opt/bitnami/hadoop/etc/hadoop
     depends_on:
       - spark-master
-    command: ["/opt/spark/bin/spark-class", "org.apache.spark.deploy.worker.Worker", "spark://spark-master:7077", "--webui-port", "8081"]
     ports:
       - '8081:8081'
     volumes:
-      - ../data:/opt/spark/data
+      - ./spark/conf/core-site.xml:/opt/bitnami/hadoop/etc/hadoop/core-site.xml:ro
+      - ./spark/conf/hdfs-site.xml:/opt/bitnami/hadoop/etc/hadoop/hdfs-site.xml:ro
 
   spark-worker2:
-    image: apache/spark:3.5.1
+    image: bitnami/spark:3.5
     container_name: bigdata-spark-worker2
+    hostname: spark-worker2
+    environment:
+      - SPARK_MODE=worker
+      - SPARK_MASTER_URL=spark://spark-master:7077
+      - SPARK_WORKER_MEMORY=2G
+      - SPARK_WORKER_CORES=2
+      - SPARK_WORKER_WEBUI_PORT_NUMBER=8082
+      - HADOOP_CONF_DIR=/opt/bitnami/hadoop/etc/hadoop
     depends_on:
       - spark-master
-    command: ["/opt/spark/bin/spark-class", "org.apache.spark.deploy.worker.Worker", "spark://spark-master:7077", "--webui-port", "8082"]
     ports:
       - '8082:8082'
     volumes:
-      - ../data:/opt/spark/data
+      - ./spark/conf/core-site.xml:/opt/bitnami/hadoop/etc/hadoop/core-site.xml:ro
+      - ./spark/conf/hdfs-site.xml:/opt/bitnami/hadoop/etc/hadoop/hdfs-site.xml:ro
+
+  spark-client:
+    image: bitnami/spark:3.5
+    container_name: bigdata-spark-client
+    hostname: spark-client
+    depends_on:
+      - spark-master
+    command: ["/bin/bash", "-lc", "tail -f /dev/null"]
+    environment:
+      - SPARK_MODE=client
+      - SPARK_MASTER_URL=spark://spark-master:7077
+      - HADOOP_CONF_DIR=/opt/bitnami/hadoop/etc/hadoop
+    ports:
+      - '4040:4040'
+    volumes:
+      - ./spark:/opt/bitnami/spark/jobs
+      - ./spark/conf/core-site.xml:/opt/bitnami/hadoop/etc/hadoop/core-site.xml:ro
+      - ./spark/conf/hdfs-site.xml:/opt/bitnami/hadoop/etc/hadoop/hdfs-site.xml:ro
 
 volumes:
   namenode_data:
