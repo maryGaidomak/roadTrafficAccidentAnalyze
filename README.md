@@ -33,8 +33,9 @@ npm install
 - `npm run dev` — backend в watch-режиме
 - `npm run build` — сборка TypeScript
 - `npm run start` — запуск backend из `dist`
-- `npm run simulator` — запуск генератора событий
-- `npm run processor` — запуск Kafka consumer/processor
+- `npm run simulator` — запуск генератора событий из `dist` (docker/runtime)
+- `npm run processor` — запуск Kafka consumer/processor из `dist` (docker/runtime)
+- `npm run simulator:dev` / `npm run processor:dev` — запуск TS-скриптов напрямую через `tsx` (удобно локально без сборки)
 - `npm run seed:segments` — сидирование **demo** дорожных сегментов
 - `npm run seed:historical` — сидирование **demo** исторической статистики ДТП
 - `npm run seed:risk` — сидирование **demo** агрегатов риска
