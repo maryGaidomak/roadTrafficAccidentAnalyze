@@ -14,7 +14,10 @@
     "seed:risk": "tsx src/scripts/seedRiskAggregates.ts",
     "lint": "tsc --noEmit",
     "smoke": "tsx src/scripts/smokeCheck.ts",
-    "smoke:e2e": "tsx src/scripts/smokeScenario.ts"
+    "smoke:e2e": "tsx src/scripts/smokeScenario.ts",
+    "import:historical": "tsx src/scripts/importHistoricalData.ts",
+    "import:segments": "tsx src/scripts/importRoadSegments.ts",
+    "smoke:historical": "tsx src/scripts/smokeHistoricalImport.ts"
   },
   "keywords": [
     "node",

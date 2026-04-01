@@ -10,19 +10,19 @@ const run = async (): Promise<void> => {
 
   await repositories.roadSegmentRepository.insertOne({
     segmentId: 'SEG-101',
-    region: 'north',
-    name: 'Northern Highway A',
-    startPoint: { lat: 55.76, lon: 37.61 },
-    endPoint: { lat: 55.8, lon: 37.7 },
-    speedLimit: 80,
-    lanes: 3,
+    region: 'Moscow',
+    name: 'MKAD North Arc',
+    startPoint: { lat: 55.887, lon: 37.442 },
+    endPoint: { lat: 55.883, lon: 37.567 },
+    speedLimit: 100,
+    lanes: 5,
     createdAt: now,
     updatedAt: now
   });
 
   await repositories.riskAggregateRepository.insertOne({
     segmentId: 'SEG-101',
-    region: 'north',
+    region: 'Moscow',
     riskScore: 0.73,
     incidentCountLast24h: 4,
     avgSpeedLastHour: 38,
@@ -30,7 +30,7 @@ const run = async (): Promise<void> => {
   });
 
   await repositories.historicalAccidentStatRepository.insertOne({
-    region: 'north',
+    region: 'Moscow',
     date: now.toISOString().slice(0, 10),
     accidentsCount: 12,
     injuriesCount: 8,
